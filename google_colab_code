@@ -1,0 +1,101 @@
+from google.colab import drive
+import pandas as pd
+drive.mount('/content/drive')
+#STEP-1:DATA READING
+#52s
+path="/content/drive/MyDrive/Project /Copy of onlinefraud.csv"
+a=pd.read_csv(path)
+from google.colab import drive
+drive.mount('/content/drive')
+#STEP-2:DATA UNDERSTANDING(6s)
+a.shape       #total rows and columns
+a.index  
+a.columns     # COLUMN NAMES
+a.dtypes      # TYPE OF DATA PRESENT IN EACH COLUMN
+a.describe()  #works only when column consists of numbers
+a.isna().sum() #check if is contains any 
+#STEP-3:DATA PREPROCESSING:(1s+1s)
+#1.removing unwanted data
+#2.if strings are present have to convert into integers
+#3.convertion of data into matrix form
+#4.splitting data for training and testing purpose
+a.drop(['nameOrig'],axis=1,inplace=True)
+a.drop(['nameDest'],axis=1,inplace=True)
+a.drop(['isFlaggedFraud'],axis=1,inplace=True)
+a.dtypes
+a['type'].value_counts()
+a["type"] = a["type"].map({"CASH_OUT": 1, "PAYMENT": 2, "CASH_IN": 3, "TRANSFER": 4, "DEBIT": 5})
+a['type'].value_counts()
+a['isFraud'].value_counts()
+#convertion of data into matrix form
+x=a.iloc[:,:-1].values
+y=a.iloc[:,-1].values
+##splitting data for training and testing purpose
+from sklearn.model_selection import train_test_split
+xtrain,xtest,ytrain,ytest=train_test_split(x,y,test_size=0.2,random_state=9) 
+ #test_size denotes 20% of data splitted for testing and remaining for training
+#STEP-4:MODEL BUILDING
+#1.Importing respective Algorithms 
+#2.Fitting the model
+#>>importing kNN algorithm named KNeighborsClassifier from neighbors module
+from sklearn.neighbors import KNeighborsClassifier
+model=KNeighborsClassifier(n_neighbors=1)
+model.fit(xtrain,ytrain)
+ypred=model.predict(xtest)
+print(ypred)
+#STEP-5:MODEL EVALUATION
+#comparing prediction values given by algorithm and testing values and checking for accuracy
+from sklearn.metrics import accuracy_score
+print(accuracy_score(ytest,ypred)*100)
+#PREDECTION:
+
+
+#STEP-6:DEPLOY
+#Hosting in public
+
+
+
+#>>SVM algorithm
+from sklearn.svm import SVC
+smodel=SVC(kernel='linear') #(poly,rbf)
+smodel.fit(xtrain,ytrain)
+ypred=smodel.predict(xtest) #prediction values
+print(ypred)
+#comparing prediction values given by algorithm and testing values and checking for accuracy
+from sklearn.metrics import accuracy_score
+print(accuracy_score(ytest,ypred)*100) 
+
+
+>>>
+## reshaping the data for convolution
+
+xtrain=xtrain.reshape(xtrain.shape[0],xtrain.shape[1],1)
+xtest=xtest.reshape(xtest.shape[0],xtest.shape[1],1)
+xtrain.shape,xtest.shape
+
+#>>## CNN Algorithm
+
+
+import tensorflow as tf
+from tensorflow import keras
+from tensorflow.keras import Sequential
+from tensorflow.keras.layers import Flatten, Dense
+
+
+model = Sequential()
+model.add(Dense(xtrain.shape[1],activation='relu',input_dim= xtrain.shape[1]))  #input layer
+model.add(Dense(128,activation='relu')) #hidden layer
+model.add(Dense(1,activation='sigmoid')) #output layer
+
+model.compile(optimizer='adam',loss='binary_crossentropy',metrics=['accuracy'])
+model.fit(xtrain,ytrain,batch_size=5,epochs=50)
+ypred = model.predict(xtest)
+if (model.predict([[1,2,2346.00,56378888888888888.00,4035679.00,46000.00,324.00]])):
+    print("Fraud")
+else:
+    print("NOT a FRAUD")
+    
+model_json = model.to_json()
+with open(r'/content/drive/MyDrive/Project/modelGG.json', "w") as json_file:
+
+  json_file.write(model_json)
